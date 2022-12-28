@@ -322,3 +322,18 @@ where a.id = q.id
     Nosey LG GB 5
     
     select * from amagi_viewership
+    
+    
+       -- Monthly Viewership Insert for Xumo Linear
+       insert into monthly_viewership (year_month_day, month, tot_hov, year, quarter, partner, deal_parent, territory_id, territory, platform)
+       select year_month_day, month, sum(tot_hov), year, quarter, partner, deal_parent, territory_id, territory, 'wurl' from wurl_viewership 
+       where quarter = 'q2' and year = 2022 and deal_parent = 44
+       group by  year_month_day, month, year, quarter, partner, deal_parent, territory_id, territory
+        
+        
+   -- WURL CPS insert for Xumo Linear
+    -- insert by month, channel, territory 
+    insert into content_provider_share(share, year_month_day, channel, channel_id, content_provider, deal_parent, partner, territory, territory_id, year, quarter)
+    select sum(share), year_month_day, channel, channel_id, content_provider, deal_parent, partner, territory, territory_id, year, quarter from wurl_viewership 
+    where  year = 2022 and quarter = 'q2' and deal_parent = 44
+    group by year_month_day, channel, channel_id, content_provider, partner, deal_parent, territory, territory_id, year, quarter
