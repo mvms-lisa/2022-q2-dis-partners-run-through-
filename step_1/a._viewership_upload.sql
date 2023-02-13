@@ -209,3 +209,75 @@ where p.id = q.id
 select * from periscope_viewership where year = 2022 and quarter = 'q2'
 
 
+-- Freevee Upload
+copy into freevee_viewership(
+view_date, 
+channel, 
+channel_id,
+streamer,
+platform_content_name,
+platform_series_name,
+platform_series_id,
+tot_hov,
+tot_sessions,
+mov_per_session,
+unique_users,
+completions,
+month,
+year_month_day,
+ref_id, 
+content_provider, 
+series, 
+share, 
+revenue,
+viewership_by_episode,
+quarter, 
+year, 
+deal_parent, 
+platform, 
+filename)
+from (
+select t.$1,
+t.$2,
+t.$3,
+t.$4,
+t.$5,
+t.$6,
+t.$7,
+to_number(REPLACE(t.$8, ','), 20, 5),
+to_number(REPLACE(t.$9, ','), 10, 2),
+to_number(t.$10, 28, 8),
+to_number(REPLACE(t.$11, ','), 10, 2),
+to_number(REPLACE(t.$12, ','), 10, 2),
+t.$13,
+t.$14,
+t.$15,
+t.$16,
+t.$17,
+to_number(REPLACE(t.$18, '%'), 11, 8),
+to_number(REPLACE(t.$19, '$'), 20, 5),
+to_number(REPLACE(t.$20, ','), 10, 2),
+'q2', 2022, 37, 'FreeVee', 'freevee_linear_q2_22.csv'
+from @distribution_partners t) pattern='.*freevee_linear_q2_2022.*' file_format = nosey_viewership 
+ON_ERROR=SKIP_FILE FORCE=TRUE;
+
+
+-- Freevee Linear
+select * from freevee_viewership where deal_parent = 37
+
+update freevee_viewership
+set partner = 'FreeVee Linear US'
+where year = 2022 and quarter = 'q2' and deal_parent = 37
+
+
+--  series id update
+update freevee_viewership f 
+set f.series_id = q.series_id
+from (
+  select f.id as id, f.series, s.term, f.content_provider, s.series_id as series_id
+  from freevee_viewership f 
+  join dictionary.public.series s on (s.entry = f.series)
+  where year = 2022 and quarter = 'q2'
+)q
+where q.id = f.id
+
